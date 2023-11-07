@@ -14,8 +14,8 @@ import (
 )
 
 func init() {
-	if _, noLog := os.Stat("/log.txt"); os.IsNotExist(noLog) {
-		newLog, err := os.Create("/log.txt")
+	if _, noLog := os.Stat("/var/logs/webserver/webserver.log"); os.IsNotExist(noLog) {
+		newLog, err := os.Create("/var/logs/webserver/webserver.log")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -29,16 +29,27 @@ func init() {
 	check(err)
 	dbChecker := time.NewTicker(time.Minute)
 	articlehandler.PassDataBase(db)
-	go checkDB(dbChecker, db)
-
+	go checkDB(dbChecker, db) // Check the database connection every minute
 }
 
 func main() {
+	// Create a new http server
+	httpServer := &http.Server{Addr: ":8080", Handler: nil}
+
 	http.Handle("/", http.FileServer(http.Dir("./src")))
 	http.HandleFunc("/articles/", articlehandler.ReturnArticle)
 	http.HandleFunc("/index.html", articlehandler.ReturnHomePage)
 	http.HandleFunc("/api/articles", articlehandler.ReturnArticlesForHomePage)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	// Start the server in a goroutine so that it doesn't block the main thread.
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Could not listen on %s: %v\n", ":8080", err)
+		}
+	}()
+
+	// Block main to prevent premature exit
+	select {}
 }
 
 func readConfig(s string) string {
@@ -49,12 +60,11 @@ func readConfig(s string) string {
 	scanner := bufio.NewScanner(config)
 	scanner.Scan()
 	return scanner.Text()
-
 }
 
 func check(err error) {
 	if err != nil {
-		errorLog, osError := os.OpenFile("/log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		errorLog, osError := os.OpenFile("/var/logs/webserver/webserver.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if osError != nil {
 			log.Fatal(err)
 		}
