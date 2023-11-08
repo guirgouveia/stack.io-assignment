@@ -57,11 +57,22 @@ locals {
 
   # Split the string into a list of YAML documents
   yamls = split("\n---\n", local.full_yaml)
+
+  mysql_yaml = file("${path.root}/../kubernetes/mysql.yaml")
+
+  mysql_manifests = split("\n---\n", local.mysql_yaml)
 }
 
 # Create a kubernetes_manifest resource for each YAML document
 resource "kubernetes_manifest" "app" {
   for_each = { for idx, yaml in local.yamls : idx => yamldecode(yaml) }
+
+  manifest = each.value
+}
+
+
+resource "kubernetes_manifest" "msql" {
+  for_each = { for idx, mysql in local.mysql_manifests : idx => yamldecode(mysql) }
 
   manifest = each.value
 }
