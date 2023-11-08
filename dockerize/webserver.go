@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"database/sql"
 	"dockerize/webserver/articlehandler"
+	"dockerize/webserver/kuberneteshandler"
 	"fmt"
 	"log"
 	"net/http"
@@ -29,6 +30,7 @@ func init() {
 	check(err)
 	dbChecker := time.NewTicker(time.Minute)
 	articlehandler.PassDataBase(db)
+	kuberneteshandler.PassDataBase(db)
 	go checkDB(dbChecker, db) // Check the database connection every minute
 }
 
@@ -37,6 +39,11 @@ func main() {
 	httpServer := &http.Server{Addr: ":8080", Handler: nil}
 
 	http.Handle("/", http.FileServer(http.Dir("./src")))
+	http.HandleFunc("/health", kuberneteshandler.HealthCheck)
+	http.HandleFunc("/post-start-hook", kuberneteshandler.PostStartHook)
+	http.HandleFunc("/pre-stop-hook", kuberneteshandler.PreStopHookWrapper(httpServer))
+	http.HandleFunc("/terminate-gracefully", kuberneteshandler.TerminateGracefully)
+	http.HandleFunc("/ready", kuberneteshandler.ReadinessCheck)
 	http.HandleFunc("/articles/", articlehandler.ReturnArticle)
 	http.HandleFunc("/index.html", articlehandler.ReturnHomePage)
 	http.HandleFunc("/api/articles", articlehandler.ReturnArticlesForHomePage)
@@ -47,6 +54,10 @@ func main() {
 			log.Fatalf("Could not listen on %s: %v\n", ":8080", err)
 		}
 	}()
+
+	// Call the PreStopHook function in a goroutine so that it can prepare the shutdown sequence in the background.
+	// This goroutine listens to the SIGTERM signal and initiates the graceful shutdown sequence.
+	go kuberneteshandler.PreStopHookWrapper(httpServer)
 
 	// Block main to prevent premature exit
 	select {}
