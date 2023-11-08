@@ -1,25 +1,49 @@
-# Task 3: Terraform
-### Exercise Goals
+# Getting Started
 
-* Create a Terraform script named `main.tf` to:
-  * Use the local backend;
-  * Use the [Kubernetes Provider](https://registry.terraform.io/providers/hashicorp/kubernetes/latest);
-  * Connect to your `minikube` context, using your local `.kube/config;
-  * Load the `app.yaml` from your last task in this module and apply it to your `minukube` context;
-* Init your terraform script;
-* Apply your terraform script;
+This module will guide you through the basics of how to create a Terraform script to deploy a Kubernetes application.
 
-### Expected Output
+## Prerequisites
 
-Please, provide us with the `main.tf` you created. Your `main.yaml` is supposed to:
-* Use local backend;
-* Use the Kubernetes Provider mentioned before;
-* Apply your `app.yaml` to your minikube;
+- [Terraform](https://www.terraform.io/downloads.html)
+- [Minikube](https://minikube.sigs.k8s.io/docs/start/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
 
-Please, provide us with the `terraform.state` file that was created when you ran `terraform apply`;
+## Provider
 
-[Optional] You can also share screenshots of your progress.
+The main.tf file declares a Kubernetes provider configured to connect to your minikube context, using a local .kube/config file.
 
-### Next steps?
+If you have multiple clusters on your kubeconfig file, isolate the minikube context, user and cluster information from it to a new file, using the following command:
 
-Once you complete this task, you can proceed to the [Linux](../linux) task;
+```
+  kubectl config view --minify --flatten --context=minikube > ./kube/config
+```
+
+## Deploying the application
+
+As the exercise explicitly tells to use the Kubernetes Provider to deploy the `app.yaml` file from the previous exercise, we will need to split the file into multiple files, because it contains multiple resource declarations and the provider's resource that accepts yaml files as arguments ( `kubernetes_manifest` ), only accepts yaml files with single resource declaration. 
+
+This was done using terraform built-in functions and local variables, as you can see below:
+
+```
+  # Path: terraform/main.tf
+  # This section is used to declare the resources that will be created by Terraform.
+
+  locals {
+    # Read the whole YAML file as a string
+    full_yaml = file("${path.root}/../kubernetes/app.yaml")
+
+    # Split the string into a list of YAML documents
+    yamls = split("\n---\n", local.full_yaml)
+  }
+
+  # Create a kubernetes_manifest resource for each YAML document
+  resource "kubernetes_manifest" "app" {
+    for_each = { for idx, yaml in local.yamls : idx => yamldecode(yaml) }
+
+    manifest = each.value
+  }
+```
+
+This workaround creates multiple `kubernetes_manifest` resources from a single yaml file.
+
+The `kubectl provider` could also be used to deploy the whole manifest at once, but it also has some limitations. The best approach would still be declaring each resource separatedly, or creating Helm charts using the `helm provider`.
