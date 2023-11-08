@@ -59,9 +59,7 @@ docker run -p 8080:8080 stack-io
 
 This command runs the Docker container and maps the port 8080 inside the Docker container to port 8080 on your local machine.
 
-Now, you can access the webserver at `http://localhost:8080`.
-
-> Noticen that the app requires a MySQL Server running, so it is more convenient to run the app using Docker Compose, as explained in the next section.
+Now, you can access the webserver at `http://localhost:8080`, but it will break very soon, because the app requires a MySQL Server running, hence, it is more convenient to run the app using Docker Compose, as explained in the next section.
 
 ### Running with Docker Compose
 
@@ -76,9 +74,9 @@ To build the image and run the app using Docker Compose, navigate to the `docker
 docker-compose up --build
 ```
 
-Remember to change the IMAGE_TAG environment variable in the .env file to ensure you are running a new version of the image in your stack.
-
 Now, you can access the webserver at `http://localhost:8081`, because the docker-compose file maps port 8080 inside the Docker container to port 8081 on your local machine to avoid conflicts with services running on port 8080.
+
+Remember to change the IMAGE_TAG environment variable in the .env file to ensure you are running a the correct version of the image in your stack, or leave it as "latest" to use the latest built version.
 
 The image can also be built and pushed to a Docker registry, such as Docker Hub, to be used by the Kubernetes cluster in the next task, with:
 
@@ -86,7 +84,7 @@ The image can also be built and pushed to a Docker registry, such as Docker Hub,
 docker-compose build --push
 ```
 
-Remember to change the IMAGE_TAG environment variable in the .env file to your Docker Hub username, so that you can push the image to your Docker Hub account.
+Remember to change the IMAGE_TAG environment variable in the .env file to your Docker Hub username, so that you can push the image to your Docker Hub account. Furthermore, the IMAGE_NAME environment variable is currently set to my own Docker Registry, so change it accordingly, if you want to push the image to your own Docker Registry or use local images.
 
 ### About the Docker Image
 
