@@ -218,7 +218,6 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: stack-io-logs-pv
-  namespace: stack-io
   labels:
     app: stack-io
     type: local
@@ -236,6 +235,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: stack-io-logs-pvc
+  namespace: stack-io
   labels:
     app: stack-io
 spec:
@@ -255,7 +255,6 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  namespace: stack-io
   name: reader
 rules:
 - apiGroups: [""] # "" indicates the core API group
@@ -274,3 +273,106 @@ roleRef:
   kind: ClusterRole
   name: reader
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stack-io-hooks-configmap
+  namespace: stack-io
+data:
+  post-start-hook.sh: |-
+    #!/bin/sh
+
+    set -e
+
+    printf "[INFO] Pre-stop hook initiated with user %s.\n" "$(whoami)" >> /var/logs/webserver/pre-stop-hook.log
+
+    max_retries=10
+    count=0
+
+    while [ $count -lt $max_retries ]
+    do
+        count=$((count+1))
+        printf "Checking /shutdown endpoint. Attempt: %s\n" "$count"
+        
+        response=$(curl -X POST http://localhost:8080/pre-stop-hook || echo "Pre-Stop Hook curl request failed.")
+        
+        if [ "$response" = "Curl failed" ]; then
+            printf "Failed to reach /shutdown endpoint. Attempt: %s\n" "$count" >> /var/logs/webserver/pre-stop-hook.log
+        elif [ "$response" -eq 200 ]; then
+            printf "Pre-Stop Hook executed succesfully. \n" >> /var/logs/webserver/pre-stop-hook.log
+            exit 0
+        else
+            printf "Pre-Stop Hook failed. %s. Retrying...\n" "$response" >> /var/logs/webserver/pre-stop-hook.log
+        fi
+
+        printf "Sleeping for 5 seconds...\n" >> /var/logs/webserver/pre-stop-hook.log
+        
+        sleep 5
+    done
+
+    printf "Max retries reached. Exiting pre-stop hook with error.\n" >> /var/logs/webserver/pre-stop-hook.log
+    exit 1
+  pre-stop-hook.sh: |-
+    #!/bin/bash
+
+    # Log the user running the script
+    printf "[INFO] Running post-start-hook.sh with user %s" "$(whoami)" >> /var/logs/webserver/post-start-hook.log
+
+    # Make the POST request
+    max_retries=10
+    count=0
+
+    while [ $count -lt $max_retries ]
+    do
+        count=$((count+1))
+        printf "\n[INFO] Attempt %s of %s" "$count" "$max_retries" >> /var/logs/webserver/post-start-hook.log
+        response=$(curl -X POST -H "Content-Type: application/json" -d '{"text":"Hello, World!"}' http://localhost:8080/post-start-hook)
+
+        # Check if the response is an error (assuming a non-zero response is an error)
+        if [[ "$response" -ne 0 ]] 2>/dev/null; then
+            printf "\n[ERROR] Post-Start Hook failed! \n Response: %s" "$response" > /var/logs/webserver/post-start-hook.log
+            printf "[ERROR] %s" "$response" >> /var/logs/post-start-hook-error
+        else
+            printf "\n[INFO] Post-Start Hook succeeded!" > /var/logs/webserver/post-start-hook.log
+            cat /var/logs/webserver/post-start-hook.log
+            exit 0
+        fi
+
+        printf "\n[INFO] Sleeping for 5 seconds..." >> /var/logs/webserver/post-start-hook.log
+        sleep 5
+    done
+
+    printf "\n[ERROR] Max retries reached. Exiting post-start-hook with error." >> /var/logs/webserver/post-start-hook.log
+    exit 1  
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stack-io-scripts-configmap
+  namespace: stack-io
+data:
+  init-setup.sh: |-
+    #!/bin/sh
+
+    set -eo pipefail
+
+    printf "[INFO] Running init-setup.sh script from setup init container with user $(whoami).\n"
+
+    # Copy hooks files to another volume to be able to make them executable
+    printf "[INFO] Copying hooks files to /dst/ and making them executable.\n"
+    cp /src/* /dst/
+    chmod +x /dst/*
+
+    # Grant permissions to the user running the container to be able to write to the log files
+    printf "[INFO] Changing ownership of /var/log/webserver to user $(whoami).\n"
+    chown -R 999:999 /var/log/webserver
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stack-io-db-secret
+  namespace: stack-io
+type: Opaque
+data:
+  server.confi: c3RhY2staW86c3RhY2staW9AdGNwKG15c3FsLm15c3FsOjMzMDYpL2Jsb2c=

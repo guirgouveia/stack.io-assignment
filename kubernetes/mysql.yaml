@@ -99,6 +99,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysql-init-configmap
+  namespace: mysql
 data:
   mysql-init.sh: |-
     #!/bin/bash
