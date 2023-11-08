@@ -2,9 +2,16 @@
 
 This is a candidate assessment assignment from [Stack.io](https://www.stack.io). A consulting firm focused in DevOps.
 
-You can find documentation for the implementation of each task at [docs](https://github.com/guirgouveia/stack.io-assignment/tree/main/docs).
+You can find documentation for the implementation of each task at [docs](https://github.com/guirgouveia/stack.io-assignment/tree/main/docs):
+
+- [Task 1: Dockerize](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-1-dockerize.md)
+- [Task 2: Kubernetes](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-2-kubernetes.md)
+- [Task 3: Terraform](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-3-terraform.md)
+- [Task 4: Linux](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-4-linux.md)
 
 # Guideline
+
+### **Provided by Stack.io**
 
 Welcome to our `Take Home Assignment`. We are going to provide you with a sequence of tasks to be executed:
 
