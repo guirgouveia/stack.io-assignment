@@ -9,6 +9,7 @@ Additionally to the requirements, the following features were implemented:
 - A *server.confi* and a *mysql-init.sh* config files are provided to configure the MySQL server connection.
 - A Kubernetes Handler Golang package was created to handle future Kubernetes events, such as the ones triggered by the Kubernetes liveness, readiness probes and the lifecycle hooks.
 - Start the server in a goroutine so that it doesn't block the main thread.
+- Pushes the image my personal Docker Hub registry and use it.
 
 ## MySQL Server
 
