@@ -17,7 +17,7 @@ spec:
         app: stack-io
     spec:
       serviceAccountName: stack-io
-      terminationGracePeriodSeconds: 60
+      terminationGracePeriodSeconds: 40
       restartPolicy: Always
       initContainers:
       # Prepares the volumes for the webserver container
@@ -39,9 +39,9 @@ spec:
           mountPath: /var/log/webserver
         - name: scripts-configmap
           mountPath: /setup
-      # - name: sleep
-      #   image: busybox
-      #   command: ['sh', '-c', 'sleep 30']
+      - name: sleep
+        image: busybox
+        command: ['sh', '-c', 'echo "Sleeping for 30 seconds..." && sleep 30']
       containers:
       ## Uncomment this to create a busybox container 
       ## to debug the pod with all the volumes mounted
