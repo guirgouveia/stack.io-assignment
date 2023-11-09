@@ -2,6 +2,13 @@
 
 This is a candidate assessment assignment from [Stack.io](https://www.stack.io). A consulting firm focused in DevOps.
 
+You can find documentation for the implementation of each task at [docs](https://github.com/guirgouveia/stack.io-assignment/tree/main/docs):
+
+- [Task 1: Dockerize](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-1-dockerize.md)
+- [Task 2: Kubernetes](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-2-kubernetes.md)
+- [Task 3: Terraform](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-3-terraform.md)
+- [Task 4: Linux](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-4-linux.md)
+
 All the commands and scripts were tested using my personal Docker registry, so you may need to change or leave the registry address blank in the following files:
 
 - `kubernetes/app.yaml`
@@ -10,13 +17,6 @@ All the commands and scripts were tested using my personal Docker registry, so y
 - `dockerize/.env`
 
 Furthermore, the Kubernetes templates are using the image from my personal Docker registry, so you may need to change the image address in the `kubernetes/app.yaml` and `linux/script.yaml` files.
-
-You can find documentation for the implementation of each task at [docs](https://github.com/guirgouveia/stack.io-assignment/tree/main/docs):
-
-- [Task 1: Dockerize](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-1-dockerize.md)
-- [Task 2: Kubernetes](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-2-kubernetes.md)
-- [Task 3: Terraform](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-3-terraform.md)
-- [Task 4: Linux](github.com/guirgouveia/stack.io-assignment/tree/main/docs/task-4-linux.md)
 
 # Guideline
 
