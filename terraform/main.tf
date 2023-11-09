@@ -47,6 +47,17 @@ variable "namespaces" {
   }
 }
 
+# # Handle cases where the namespace already exist
+# import {
+#   to = kubernetes_namespace.namespaces["stack-io"]
+#   id = var.namespaces["stack-io"]
+# }
+
+# import {
+#   to = kubernetes_namespace.namespaces["mysql"]
+#   id = var.namespaces["mysql"]
+# }
+
 # Path: terraform/main.tf
 # This section is used to declare the resources that will be created by Terraform.
 locals {

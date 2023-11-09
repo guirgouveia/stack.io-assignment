@@ -52,7 +52,22 @@ I did the same for MySQL, so everything is deployed together.
 
 ## Deployment
 
-To deploy the application, run the following commands:
+First, make sure to clean-up from previous exercises, by running the following commands:
+
+```
+  kubectl delete -f ../kubernetes
+```
+
+A [tests/defaults.tftest.hcl](tests/defaults.tftest.hcl) was created so that you can test the application with Terraform testing framework, running: 
+  
+  ```
+    terraform init
+    terraform test
+  ```
+
+It will apply and destroy all the resources. You [develop more tests](https://developer.hashicorp.com/terraform/tutorials/configuration-language/test), as you wish.
+
+Or deploy all the resources with Terraform, running:
 
 ```
   terraform init
