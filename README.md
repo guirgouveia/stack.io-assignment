@@ -14,9 +14,9 @@ You can find documentation for the implementation of each task at [docs](https:/
 All the commands and scripts were tested using my personal Docker registry, so you may need to change or leave the registry address blank in the following files:
 
 - [kubernetes/app.yaml](./kubernetes/app.yaml)
-- `linux/automation.sh`
-- `linux/script.yaml`
-- `dockerize/.env`
+- [linux/automation.sh](linux/automation.sh)
+- [linux/script.yaml](linux/script.yaml)
+- [dockerize/.env](dockerize/.env)
 
 Furthermore, the Kubernetes templates are using the image from my personal Docker registry, so you may need to change the image address in the `kubernetes/app.yaml` and `linux/script.yaml` files.
 
