@@ -18,6 +18,8 @@ If you have multiple clusters on your kubeconfig file, isolate the minikube cont
   kubectl config view --minify --flatten --context=minikube > ./kube/config
 ```
 
+Notice that you'll have to execute this command at every cluster restart, as the minikube context changes.
+
 ## Development
 
 As the exercise explicitly tells to use the Kubernetes Provider to deploy the `app.yaml` file from the previous exercise, we will need to split the file into multiple files, because it contains multiple resource declarations and the provider's resource that accepts yaml files as arguments ( `kubernetes_manifest` ), only accepts yaml files with single resource declaration. 

@@ -46,13 +46,15 @@ To start the Kubernetes cluster, run the following command:
 
 This command will start a local Kubernetes cluster using the Docker container runtime.
 
-### Using images from Docker Daemon
+### Loading images into Minikube
 
-Now, you need to configure minikube to use the Docker daemon inside the minikube VM, so it can pull the image from the local Docker registry.
+Now, you need to build the image using minikube, because it uses a different Docker daemon than the one running on your machine.
 
 ```
-    eval $(minikube docker-env)
+minikube build -t stack-io ./dockerize
 ```
+
+The imagePullPolicy was then configured to "IfNotPresent" in the templates, to avoid pulling the image from the Docker Hub registry.
 
 ### Deploying the App
 
@@ -63,7 +65,6 @@ As kubectl doesn't resolve dependencies between files, and the namespace.yaml is
     kubectl apply -f ./namespace.yaml 
 ```
    
-
 This command will create all the necessary Kubernetes resources to run the app, including the MySQL database.
 ```
     kubectl apply -f .
@@ -82,6 +83,8 @@ To run the app with Skaffold, run the following command:
 ```
 
 Skaffold will rebuild the image and redeploy upon changes to the source code or template files.
+
+Skaffold automatically uses the minikube Docker daemon, so the image will already be present in the cluster.
 
 ### Accessing the App
 

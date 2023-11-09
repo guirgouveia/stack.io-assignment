@@ -44,6 +44,7 @@ spec:
         command: ['sh', '-c', 'echo "Sleeping for 30 seconds..." && sleep 30']
       containers:
       - name: webserver
+        imagePullPolicy: IfNotPresent
         image: stack-io:latest
         ports:
         - name: http
