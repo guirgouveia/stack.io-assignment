@@ -18,8 +18,6 @@ All the commands and scripts were tested using my personal Docker registry, so y
 - [linux/script.yaml](linux/script.yaml)
 - [dockerize/.env](dockerize/.env)
 
-Furthermore, the Kubernetes templates are using the image from my personal Docker registry, so you may need to change the image address in the `kubernetes/app.yaml` and `linux/script.yaml` files.
-
 # Guideline
 
 ### **Provided by Stack.io**
