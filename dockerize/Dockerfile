@@ -72,6 +72,9 @@ RUN set -x && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get instal
 # Set the timezone to UTC
 ENV TZ=UTC
 
+# Set the locale to en_US.UTF-8
+ENV LANG=en_US.UTF-8
+
 # Create a new group "stack-io" with GID 999
 RUN addgroup --gid 999 stack-io
 
@@ -83,6 +86,12 @@ RUN mkdir -p /var/logs/webserver
 
 # Changes the owner of the logs folder to "stack-io"
 RUN chown -R 999:999 /var/logs/webserver
+
+# Create healthcheck 
+HEALTHCHECK --interval=5s \
+            --timeout=3s \
+            --retries=3 \
+            CMD curl -f http://localhost:"$HTTP_PORT"/health
 
 # Switch to the new user
 USER stack-io
