@@ -9,6 +9,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
+  namespace: mysql
 spec:
   selector:
     matchLabels:
@@ -22,7 +23,7 @@ spec:
         app: mysql
     spec:
       containers:
-      - image: mysql/mysql-server:latest
+      - image: mysql:8.0
         name: mysql
         envFrom:
         - secretRef:
@@ -46,7 +47,7 @@ spec:
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
-          claimName: mysql-pv-claim
+          claimName: mysql-pvc
       - name: mysql-init-configmap
         configMap:
           name: mysql-init-configmap
@@ -58,11 +59,10 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: mysql-pv
-  namespace: mysql
   labels:
     type: local
 spec:
-  storageClassName: hostpath
+  storageClassName: standard
   capacity:
     storage: 20Gi
   accessModes:
@@ -74,9 +74,10 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
+  namespace: mysql
   name: mysql-pvc
 spec:
-  storageClassName: hostpath
+  storageClassName: standard
   accessModes:
     - ReadWriteOnce
   resources:
@@ -96,6 +97,34 @@ spec:
   clusterIP: None
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mysql
+  namespace: mysql
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: reader
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods, services, deployments, configmaps, secrets"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: mysql-reader-rb
+subjects:
+- kind: ServiceAccount
+  namespace: mysql
+  name: mysql
+roleRef:
+  kind: ClusterRole
+  name: reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysql-init-configmap
@@ -107,7 +136,20 @@ data:
     set -eo pipefail
 
     mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" <<-EOSQL
-        GRANT ALL PRIVILEGES ON *.* TO 'stack-io'@'%' WITH GRANT OPTION;
+        GRANT ALL PRIVILEGES ON *.* TO 'mysql'@'%' WITH GRANT OPTION;
         GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
         FLUSH PRIVILEGES;
     EOSQL
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  namespace: mysql
+type: Opaque
+data:
+  MYSQL_ROOT_PASSWORD: ZXhhbXBsZQ==
+  MYSQL_PASSWORD: c3RhY2staW8=
+  MYSQL_USER: c3RhY2staW8=
+  MYSQL_DATABASE: YmxvZw==
+  MYSQL_PORT: MzMwNg==

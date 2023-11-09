@@ -63,3 +63,37 @@ This command will create all the necessary Kubernetes resources to run the app, 
 ```
 
 A better approach would be to declare all the related resources in the same file or use a tool like Kustomize to create a single file with all the resources, as you can see in my [kubernetes-deployments](github.com/guirgouveia/kubernetes-deployments) repository, where I further explore multiple-options to deploy apps to Kubernetes.
+
+### Exposing the App
+
+Three types of services were created for the app:
+
+- ClusterIP: to expose the app to other resources inside the cluster.
+- NodePort: to expose the app to a port on the node running minikube ( localhost ).
+- LoadBalancer: to expose the app to the outside world.
+
+The application should be accessible at `http://localhost:8080`, where 8080 is the port exposed by the NodePort service. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.
+
+In addition, a Ingress resource was created to expose the app with [NGINX Ingress Controller](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwiQn8W3v7WCAxXPqJUCHU7RBOMQFnoECAUQAQ&url=https%3A%2F%2Fdocs.nginx.com%2Fnginx-ingress-controller%2F&usg=AOvVaw2lebwrv0Wvgj3YPSasaSWF&opi=89978449).
+
+To use the ingress, add the minikube ingress addon with:
+
+```
+    minikube addons enable ingress
+```
+
+Enable the ingress tunnel with:
+
+```
+    minikube tunnel
+```
+
+And finally, add the following line to your `/etc/hosts` file:
+    127.0.0.1       stack-io.local
+```
+
+The application should be accessible at `http://localhost:89`, where 80 is the port exposed by the Load Balancer service.
+
+Furthermore, the service can be accessed now at `http://stack-io.local`, using the Ingress. This approach is recommended for production deployments.
+
+Remember to close the tunnel, when you're done, with `Ctrl+C`.

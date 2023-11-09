@@ -72,22 +72,17 @@ RUN set -x && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get instal
 # Set the timezone to UTC
 ENV TZ=UTC
 
-# Set the locale to en_US.UTF-8
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US:en \
-    LC_ALL=en_US.UTF-8
-
 # Create a new group "stack-io" with GID 999
 RUN addgroup --gid 999 stack-io
 
 # Create a new user "stack-io" with UID 999 and add it to the newly created "stack-io" group
 RUN adduser --uid 999 --ingroup stack-io --shell /bin/bash --disabled-password --gecos "" stack-io
 
-# Creates the logs folder
+# Creates the logs folder and assigns the "stack-io uid:gid" to it
 RUN mkdir -p /var/logs/webserver
 
-# Change the ownership of the /app directory to stack-io
-RUN chown -R stack-io:stack-io /app /var/logs/webserver
+# Changes the owner of the logs folder to "stack-io"
+RUN chown -R 999:999 /var/logs/webserver
 
 # Switch to the new user
 USER stack-io

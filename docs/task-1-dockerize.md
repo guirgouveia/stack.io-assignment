@@ -59,6 +59,11 @@ docker run -p 8080:8080 stack-io
 
 This command runs the Docker container and maps the port 8080 inside the Docker container to port 8080 on your local machine.
 
+To check the webserver's status, run:
+```
+  curl -v localhost:8080/health
+```
+
 Now, you can access the webserver at `http://localhost:8080`, but it will break very soon, because the app requires a MySQL Server running, hence, it is more convenient to run the app using Docker Compose, as explained in the next section.
 
 ### Running with Docker Compose
@@ -84,7 +89,7 @@ The image can also be built and pushed to a Docker registry, such as Docker Hub,
 docker-compose build --push
 ```
 
-Remember to change the IMAGE_TAG environment variable in the .env file to your Docker Hub username, so that you can push the image to your Docker Hub account. Furthermore, the IMAGE_NAME environment variable is currently set to my own Docker Registry, so change it accordingly, if you want to push the image to your own Docker Registry or use local images.
+Remember to change the IMAGE_TAG environment variable in the `.env` file to your Docker Hub username, so that you can push the image to your Docker Hub account. Furthermore, the IMAGE_NAME environment variable is currently set to my own Docker Registry, so change it accordingly, if you want to push the image to your own Docker Registry or use local images.
 
 ### About the Docker Image
 

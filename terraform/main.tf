@@ -43,12 +43,6 @@ variable "namespace" {
   }
 }
 
-resource "kubernetes_namespace" "main" {
-  metadata {
-    name = "stack-io"
-  }
-}
-
 # Path: terraform/main.tf
 # This section is used to declare the resources that will be created by Terraform.
 locals {
@@ -63,11 +57,20 @@ locals {
   mysql_manifests = split("\n---\n", local.mysql_yaml)
 }
 
+# Create a namespace for the application
+resource "kubernetes_namespace" "stack_io" {
+  metadata {
+    name = "stack-io"
+  }
+}
+
 # Create a kubernetes_manifest resource for each YAML document
 resource "kubernetes_manifest" "app" {
   for_each = { for idx, yaml in local.yamls : idx => yamldecode(yaml) }
 
   manifest = each.value
+
+  depends_on = [kubernetes_namespace.stack_io]
 }
 
 

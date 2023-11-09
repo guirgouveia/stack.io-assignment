@@ -47,3 +47,5 @@ This was done using terraform built-in functions and local variables, as you can
 This workaround creates multiple `kubernetes_manifest` resources from a single yaml file.
 
 The `kubectl provider` could also be used to deploy the whole manifest at once, but it also has some limitations. The best approach would still be declaring each resource separatedly, or creating Helm charts using the `helm provider`.
+
+I did the same for MySQL, so everything is deployed together.
