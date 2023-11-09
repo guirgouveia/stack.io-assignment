@@ -46,6 +46,14 @@ To start the Kubernetes cluster, run the following command:
 
 This command will start a local Kubernetes cluster using the Docker container runtime.
 
+### Using images from Docker Daemon
+
+Now, you need to configure minikube to use the Docker daemon inside the minikube VM, so it can pull the image from the local Docker registry.
+
+```
+    eval $(minikube docker-env)
+```
+
 ### Deploying the App
 
 To build and deploy the app to the Kubernetes cluster, navigate to the [kubernetes](./kubernetes) run the following command:
