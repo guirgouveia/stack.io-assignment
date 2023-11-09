@@ -10,4 +10,6 @@ In addition to the requirements, the script will create a new semver tag, if it 
 
 Simply run the `automation.sh` script and wait for the output.
 
-All the commands and scripts were tested using my personal Docker registry, so you may need to change or leave the registry address blank in the `script.yaml` and `automation.sh` files.
+It will build the Docker image, tag it with a new semantic version, and render a new Kubernetes manifest file with the new image version, comparing the changes with the previous version.
+
+It already uses the Minikube Docker Daemon, so don't worry about that.

@@ -44,7 +44,6 @@ function bumpVersion() {
     LATEST_VERSION=$(echo "$TAGS" | grep -Eo '([0-9]+\.[0-9]+\.[0-9]+)' | sort -Vr | head -n 1)
 
     if [ -z "$LATEST_VERSION" ]; then
-        echo "No existing versions found, starting at v0.0.1"
         echo "v0.0.1"
         return
     fi
@@ -61,9 +60,14 @@ function bumpVersion() {
 # Parse CLI arguments
 parseCLIArgs "$@"
 
+# Using minikube's Docker daemon
+eval "$(minikube docker-env)"
+
 # Bump the version, build the image and push it to the registry
 IMAGE_TAG=$(bumpVersion)
 export MY_NEW_IMAGE="$DOCKER_REGISTRY$IMAGE_NAME:$IMAGE_TAG"
+
+set -x
 if [[ -z "$PUSH" ]]; then
     echo "Building image $MY_NEW_IMAGE"
     docker build -t "$MY_NEW_IMAGE" ./dockerize
@@ -71,12 +75,12 @@ else
     echo "Building and pushing image $MY_NEW_IMAGE"
     docker build --push -t "$MY_NEW_IMAGE" ./dockerize
 fi
+set +x
 
 # Render the Kubernetes manifest to include the new image tag
 # Can also be done with envsubst
 sed "s|\$MY_NEW_IMAGE|$MY_NEW_IMAGE|g" linux/script.yaml > linux/new-app.yaml
 # envsubst "'$MY_NEW_IMAGE'" < linux/script.yaml > linux/new-app.yaml
-
 
 # Diff the new manifest with the current manifest
 kubectl diff -f ./kubernetes/app.yaml -f linux/new-app.yaml
