@@ -6,10 +6,10 @@ Read the [Guideline](#guideline) section containing the tasks to be completed.
 
 You can find documentation for the implementation of each task at [docs](https://github.com/guirgouveia/stack.io-assignment/tree/main/docs):
 
-- [Task 1: Dockerize](./docs/task-1-dockerize.md)
-- [Task 2: Kubernetes](./docs/task-2-kubernetes.md)
-- [Task 3: Terraform](./docs/task-3-terraform.md)
-- [Task 4: Linux](./docs/task-4-linux.md)
+- [Task 1 Implementation: Dockerize](./docs/task-1-dockerize.md)
+- [Task 2 Implementation: Kubernetes](./docs/task-2-kubernetes.md)
+- [Task 3 Implementation: Terraform](./docs/task-3-terraform.md)
+- [Task 4 Implementation: Linux](./docs/task-4-linux.md)
 
 All the commands and scripts were tested using my personal Docker registry, so you may need to change or leave the registry address blank in the following files:
 
