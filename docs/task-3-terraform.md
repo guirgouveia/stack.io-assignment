@@ -18,7 +18,7 @@ If you have multiple clusters on your kubeconfig file, isolate the minikube cont
   kubectl config view --minify --flatten --context=minikube > ./kube/config
 ```
 
-## Deploying the application
+## Development
 
 As the exercise explicitly tells to use the Kubernetes Provider to deploy the `app.yaml` file from the previous exercise, we will need to split the file into multiple files, because it contains multiple resource declarations and the provider's resource that accepts yaml files as arguments ( `kubernetes_manifest` ), only accepts yaml files with single resource declaration. 
 
@@ -49,3 +49,14 @@ This workaround creates multiple `kubernetes_manifest` resources from a single y
 The `kubectl provider` could also be used to deploy the whole manifest at once, but it also has some limitations. The best approach would still be declaring each resource separatedly, or creating Helm charts using the `helm provider`.
 
 I did the same for MySQL, so everything is deployed together.
+
+## Deployment
+
+To deploy the application, run the following commands:
+
+```
+  terraform init
+  terraform apply
+```
+
+Watch the services being created on minikube.

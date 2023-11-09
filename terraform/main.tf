@@ -23,22 +23,26 @@ provider "kubernetes" {
 # This section is used to declare the variables that will be used in the Terraform configuration.
 variable "labels" {
   description = "Labels to apply to all resources"
-  type        = map(string)
+  type        = map(map(string))
   default = {
-    "app" = "stack-io"
-  }
-  validation {
-    condition     = length(keys(var.labels)) <= 5
-    error_message = "Labels must be less than 5"
+    stack-io = {
+      app = "stack-io"
+    }
+    mysql = {
+      app = "mysql"
+    }
   }
 }
 
-variable "namespace" {
-  description = "Namespace to deploy the application to"
-  type        = string
-  default     = "stack-io"
+variable "namespaces" {
+  description = "Namespaces to create"
+  type        = map(string)
+  default = {
+    stack-io = "stack-io"
+    mysql    = "mysql"
+  }
   validation {
-    condition     = length(var.namespace) <= 63
+    condition     = alltrue([for k, v in var.namespaces : length(v) <= 63])
     error_message = "Namespace must be less than 63 characters"
   }
 }
@@ -57,10 +61,13 @@ locals {
   mysql_manifests = split("\n---\n", local.mysql_yaml)
 }
 
-# Create a namespace for the application
-resource "kubernetes_namespace" "stack_io" {
+# Create a kubernetes_namespace resource for each namespace
+resource "kubernetes_namespace" "namespaces" {
+  for_each = var.namespaces
+
   metadata {
-    name = "stack-io"
+    name   = each.value
+    labels = var.labels[each.key]
   }
 }
 
@@ -70,7 +77,7 @@ resource "kubernetes_manifest" "app" {
 
   manifest = each.value
 
-  depends_on = [kubernetes_namespace.stack_io]
+  depends_on = [kubernetes_namespace.namespaces]
 }
 
 
@@ -78,4 +85,6 @@ resource "kubernetes_manifest" "msql" {
   for_each = { for idx, mysql in local.mysql_manifests : idx => yamldecode(mysql) }
 
   manifest = each.value
+
+  depends_on = [kubernetes_namespace.namespaces]
 }
