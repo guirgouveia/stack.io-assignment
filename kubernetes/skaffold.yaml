@@ -1,0 +1,41 @@
+apiVersion: skaffold/v4beta7
+kind: Config
+metadata:
+  name: stack-io
+build:
+  local:
+    # Tell Skaffold to skip pushing image to a registry
+    # and importing the image directly into the local cluster for testing
+    push: false
+    useDockerCLI: false
+    useBuildkit: false
+    tryImportMissing: false
+  tagPolicy:
+    gitCommit:
+      prefix: local
+  artifacts:
+    - image: stack-io
+      context: ../dockerize
+      docker:
+        dockerfile: Dockerfile
+deploy:
+  kubeContext: minikube
+  kubectl: {}
+manifests:
+  rawYaml:
+    - namespace.yaml
+    - app.yaml
+    - mysql.yaml
+portForward:
+  - resourceType: deployment
+    resourceName: stack-io
+    namespace: stack-io
+    address: 0.0.0.0
+    port: 8080
+    localPort: 8084
+  - resourceType: deployment
+    resourceName: mysql
+    namespace: mysql
+    address: 0.0.0.0
+    port: 3306
+    localPort: 3308

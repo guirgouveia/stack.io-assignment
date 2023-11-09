@@ -7,17 +7,16 @@ For this implementation, a kubernetes Golang package was created for the server 
 In addition to the requirements, the following features were implemented:
 
 - Created a *skaffold.yaml* file to automate the build and deployment process to Kubernetes.
-- Added Security Context to Pods and Containers to improve security and manage permissions.
+- Added a MySQL database manifest with the `mysql.yaml` file.
+- Added Security Context to Containers to improve security and manage permissions.
 - Added termination grace period to allow the app to gracefully shutdown, considering the time needed to finish the preStop Hook.
 - Added a init container to change file permissions of the postStart and preStop hook scripts.
-- Mounted the scripts as ConfigMap volumes to allow the app to execute them.
+- Mounted the readiness, liveness probe and lifecycle hook scripts as ConfigMap volumes to allow the app to execute them.
 - Added resources requests and limits to the Pod to improve performance and resource management.
 - Added Ingrees to expose the app to the outside world.
-- Uses the image from my personal Docker Hub registry.
 - Added network policies to restrict access to the app.
 - Added persistent volume claims to allow data persistence.
 - Added RBAC to restrict access, giving only the necessary permissions to the app.
-- Added a MySQL database manifest with the `mysql.yaml` file.
 
 # Getting Started
 
@@ -62,9 +61,21 @@ This command will create all the necessary Kubernetes resources to run the app, 
     kubectl apply -f .
 ```
 
-A better approach would be to declare all the related resources in the same file or use a tool like Kustomize to create a single file with all the resources, as you can see in my [kubernetes-deployments](github.com/guirgouveia/kubernetes-deployments) repository, where I further explore multiple-options to deploy apps to Kubernetes.
+A better approach would be to declare all the related resources in the same file or use Skaffold or Kustomize that creates a dependendecy logic between the files, as you can see in my [kubernetes-deployments](github.com/guirgouveia/kubernetes-deployments) repository, where I further explore multiple-options to deploy apps to Kubernetes.
 
-### Exposing the App
+### Running with Skaffold
+
+To create a local CICD pipeline, you can use Skaffold to automate the build and deployment process to Kubernetes.
+
+To run the app with Skaffold, run the following command:
+
+```
+    skaffold dev
+```
+
+Skaffold will rebuild the image and redeploy upon changes to the source code or template files.
+
+### Accessing the App
 
 Three types of services were created for the app:
 
@@ -92,8 +103,8 @@ And finally, add the following line to your `/etc/hosts` file:
     127.0.0.1       stack-io.local
 ```
 
-The application should be accessible at `http://localhost:89`, where 80 is the port exposed by the Load Balancer service.
-
-Furthermore, the service can be accessed now at `http://stack-io.local`, using the Ingress. This approach is recommended for production deployments.
-
 Remember to close the tunnel, when you're done, with `Ctrl+C`.
+
+The application should be accessible at `http://localhost:89`, where 80 is the port exposed by the Load Balancer service and also at `http://stack-io.local`, using the Ingress. This approach is recommended for production deployments.
+
+Lastly, Skaffold already automatically creates a port-forwards at `http://localhost:8083`. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.

@@ -2,7 +2,7 @@
 # This script is used to automate the process of building and pushing the Docker image
 
 # Declare default values for variables
-DOCKER_REGISTRY=grgouveia/
+DOCKER_REGISTRY=
 IMAGE_NAME="stack-io"
 
 function parseCLIArgs() {

@@ -25,11 +25,11 @@ spec:
         image: busybox
         command: ['sh', '-c', 'cp  /setup/* /dst && chmod -R +x /dst/* && /dst/init-setup.sh']
         securityContext:
-          allowPrivilegeEscalation: true # not desirable, but needed to change permissions
+          allowPrivilegeEscalation: true
           # Drops all Linux capabilities except MKNOD
-          # capabilities:
-          #   drop:
-          #   - ALL
+          capabilities:
+            drop:
+            - ALL
         volumeMounts:
         - name: hooks-configmap
           mountPath: /src
@@ -43,25 +43,8 @@ spec:
         image: busybox
         command: ['sh', '-c', 'echo "Sleeping for 30 seconds..." && sleep 30']
       containers:
-      ## Uncomment this to create a busybox container 
-      ## to debug the pod with all the volumes mounted
-      # - name: debug
-      #   image: busybox
-      #   command: ['sh', '-c', 'sleep infinity']
-      #   volumeMounts:
-      #   - name: logs
-      #     mountPath: /var/logs
-      #   - name: hooks
-      #     mountPath: /app/hooks
-      #   resources:
-      #     requests:
-      #       cpu: "100m"
-      #       memory: "100Mi"
-      #     limits:
-      #       cpu: "500m"
-      #       memory: "500Mi"
       - name: webserver
-        image: grgouveia/stack-io:v1.3.2
+        image: stack-io:latest
         ports:
         - name: http
           containerPort: 8080

@@ -76,7 +76,7 @@ An *.env* file is provided to set the environment variables used by the Docker C
 To build the image and run the app using Docker Compose, navigate to the `dockerize` directory containing the `docker-compose.yaml` file and run:
 
 ```bash
-docker-compose up --build
+docker-compose up --build -d
 ```
 
 Now, you can access the webserver at `http://localhost:8081`, because the docker-compose file maps port 8080 inside the Docker container to port 8081 on your local machine to avoid conflicts with services running on port 8080.
@@ -89,7 +89,7 @@ The image can also be built and pushed to a Docker registry, such as Docker Hub,
 docker-compose build --push
 ```
 
-Remember to change the IMAGE_TAG environment variable in the `.env` file to your Docker Hub username, so that you can push the image to your Docker Hub account. Furthermore, the IMAGE_NAME environment variable is currently set to my own Docker Registry, so change it accordingly, if you want to push the image to your own Docker Registry or use local images.
+Remember to change the DOCKER_REGISTRY environment variable in the `.env` file to your Docker Hub username, so that you can push the image to your Docker Hub account. Furthermore, the IMAGE_NAME environment variable is currently set to my own Docker Registry, so change it accordingly, if you want to push the image to your own Docker Registry or use local images.
 
 ### About the Docker Image
 

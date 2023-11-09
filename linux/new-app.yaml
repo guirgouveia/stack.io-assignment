@@ -61,7 +61,7 @@ spec:
       #       cpu: "500m"
       #       memory: "500Mi"
       - name: webserver
-        image: grgouveia/stack-io:v1.3.30
+        image: stack-io:v1.3.30
         ports:
         - name: http
           containerPort: 8080

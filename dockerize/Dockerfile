@@ -91,7 +91,7 @@ RUN chown -R 999:999 /var/logs/webserver
 HEALTHCHECK --interval=5s \
             --timeout=3s \
             --retries=3 \
-            CMD curl -f http://localhost:"$HTTP_PORT"/health
+            CMD curl -f http://localhost:"$HTTP_PORT"/health || exit 1
 
 # Switch to the new user
 USER stack-io
