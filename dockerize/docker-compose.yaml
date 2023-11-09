@@ -13,8 +13,8 @@ services:
         - APP_HOME=/app
         - HTTP_PORT=8080
       tags:
-        - "${IMAGE_NAME}:${IMAGE_TAG}"
-    image: "${IMAGE_NAME}:${IMAGE_TAG}"
+        - "${DOCKER_REGISTRY}${IMAGE_NAME}:${IMAGE_TAG}"
+    image: "${DOCKER_REGISTRY}${IMAGE_NAME}:${IMAGE_TAG}"
     restart: always
     ports:
       - "$WEBSERVER_HOST_PORT:8080" # Expose port 8081 to the host to avoid port conflicts

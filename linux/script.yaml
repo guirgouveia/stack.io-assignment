@@ -1,0 +1,390 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stack-io
+  namespace: stack-io
+  labels:
+    app: stack-io
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stack-io
+  template:
+    metadata:
+      labels:
+        app: stack-io
+    spec:
+      serviceAccountName: stack-io
+      terminationGracePeriodSeconds: 40
+      restartPolicy: Always
+      initContainers:
+      # Prepares the volumes for the webserver container
+      - name: setup
+        image: busybox
+        command: ['sh', '-c', 'cp  /setup/* /dst && chmod -R +x /dst/* && /dst/init-setup.sh']
+        securityContext:
+          allowPrivilegeEscalation: true # not desirable, but needed to change permissions
+          # Drops all Linux capabilities except MKNOD
+          # capabilities:
+          #   drop:
+          #   - ALL
+        volumeMounts:
+        - name: hooks-configmap
+          mountPath: /src
+        - name: hooks
+          mountPath: /dst
+        - name: logs
+          mountPath: /var/log/webserver
+        - name: scripts-configmap
+          mountPath: /setup
+      - name: sleep
+        image: busybox
+        command: ['sh', '-c', 'echo "Sleeping for 30 seconds..." && sleep 30']
+      containers:
+      ## Uncomment this to create a busybox container 
+      ## to debug the pod with all the volumes mounted
+      # - name: debug
+      #   image: busybox
+      #   command: ['sh', '-c', 'sleep infinity']
+      #   volumeMounts:
+      #   - name: logs
+      #     mountPath: /var/logs
+      #   - name: hooks
+      #     mountPath: /app/hooks
+      #   resources:
+      #     requests:
+      #       cpu: "100m"
+      #       memory: "100Mi"
+      #     limits:
+      #       cpu: "500m"
+      #       memory: "500Mi"
+      - name: webserver
+        image: $MY_NEW_IMAGE
+        ports:
+        - name: http
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+          limits:
+            cpu: "500m"
+            memory: "500Mi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 5
+        volumeMounts:
+        - name: logs
+          mountPath: /var/logs/webserver
+        - name: stack-io
+          mountPath: /app/server.confi
+          subPath: server.confi # Using subPath to mount a single file from a volume
+        - name: hooks
+          mountPath: /app/hooks
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh","-c", "/app/hooks/post-start-hook.sh"]
+          preStop:
+            exec:
+              command: ["/bin/sh","-c", "/app/hooks/pre-stop-hook.sh"]
+      volumes:
+      - name: logs
+        persistentVolumeClaim:
+          claimName: stack-io-logs-pvc
+      - name: stack-io
+        secret:
+          secretName: stack-io-db-secret
+          items:
+          - key: server.confi
+            path: server.confi
+      - name: hooks-configmap
+        configMap:
+          name: stack-io-hooks-configmap
+      - name: scripts-configmap
+        configMap:
+          name: stack-io-scripts-configmap
+      - name: hooks
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stack-io
+  namespace: stack-io
+  labels:
+    app: stack-io
+spec:
+  type: ClusterIP
+  selector:
+    app: stack-io
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stack-io-nodeport
+  namespace: stack-io
+  labels:
+    app: stack-io
+spec:
+  type: NodePort
+  selector:
+    app: stack-io
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stack-io-lb
+  namespace: stack-io
+  labels:
+    app: stack-io
+spec:
+  type: LoadBalancer
+  selector:
+    app: stack-io
+  ports:
+    - name: http
+      protocol: TCP
+      port: 89
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: stack-io
+  labels:
+    app: stack-io
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  name: stack-io
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: stack-io.local
+    http:
+      paths:
+      - backend:
+          service:
+            name: stack-io
+            port:
+              name: http
+        path: /(.*)
+        pathType: ImplementationSpecific
+---
+# Deny all ingress and egress traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  namespace: stack-io
+  name: stack-io-default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# Allow traffic from the same namespace from pods with the specified labels
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+  namespace: stack-io
+  name: stack-io-allow-traffic
+spec:
+  podSelector:
+    matchLabels:
+      app: stack-io
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: stack-io
+    - podSelector:
+        matchLabels:
+          app: nginx
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stack-io-logs-pv
+  labels:
+    app: stack-io
+    type: local
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/opt/volume"
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stack-io-logs-pvc
+  namespace: stack-io
+  labels:
+    app: stack-io
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: stack-io
+  namespace: stack-io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: reader
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods, services, deployments, configmaps, secrets"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: stack-io-reader-rb
+subjects:
+- kind: ServiceAccount
+  namespace: stack-io
+  name: stack-io
+roleRef:
+  kind: ClusterRole
+  name: reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stack-io-hooks-configmap
+  namespace: stack-io
+data:
+  post-start-hook.sh: |-
+    #!/bin/bash
+
+    # Log the user running the script
+    printf "$(date) | [INFO] Running post-start-hook.sh with user %s" "$(whoami)" >> /var/logs/webserver/post-start-hook.log
+
+    # Make the POST request
+    max_retries=10
+    count=0
+
+    while [ $count -lt $max_retries ]
+    do
+        count=$((count+1))
+        printf "\n[INFO] Attempt %s of %s" "$count" "$max_retries" >> /var/logs/webserver/post-start-hook.log
+        response=$(curl -X POST -H "Content-Type: application/json" -d '{"text":"Hello, World!"}' http://localhost:8080/post-start-hook)
+
+        # Check if the response is an error (assuming a non-zero response is an error)
+        if [[ "$response" -ne 0 ]] 2>/dev/null; then
+            printf "\n[ERROR] Post-Start Hook failed! \n Response: %s" "$response" > /var/logs/webserver/post-start-hook.log
+            printf "[ERROR] %s" "$response" >> /var/logs/post-start-hook-error
+        else
+            printf "\n[INFO] Post-Start Hook succeeded!" > /var/logs/webserver/post-start-hook.log
+            cat /var/logs/webserver/post-start-hook.log
+            exit 0
+        fi
+
+        printf "\n[INFO] Sleeping for 5 seconds..." >> /var/logs/webserver/post-start-hook.log
+        sleep 5
+    done
+
+    printf "\n[ERROR] Max retries reached. Exiting post-start-hook with error." >> /var/logs/webserver/post-start-hook.log
+    exit 1  
+  pre-stop-hook.sh: |-
+    #!/bin/sh
+
+    set -e
+
+    printf "$(date) | [INFO] Pre-stop hook initiated with user %s.\n" "$(whoami)" >> /var/logs/webserver/pre-stop-hook.log
+
+    max_retries=10
+    count=0
+
+    while [ $count -lt $max_retries ]
+    do
+        count=$((count+1))
+        printf "Checking /pre-stop-hook endpoint. Attempt: %s\n" "$count"
+        
+        response=$(curl -X POST http://localhost:8080/pre-stop-hook || echo "Pre-Stop Hook curl request failed.")
+        
+        if [ "$response" = "Curl failed" ]; then
+            printf "Failed to reach /pre-stop-hook endpoint. Attempt: %s\n" "$count" >> /var/logs/webserver/pre-stop-hook.log
+        elif [ "$response" -eq 200 ]; then
+            printf "Pre-Stop Hook executed succesfully. \n" >> /var/logs/webserver/pre-stop-hook.log
+            exit 0
+        else
+            printf "Pre-Stop Hook failed. %s. Retrying...\n" "$response" >> /var/logs/webserver/pre-stop-hook.log
+        fi
+
+        printf "Sleeping for 5 seconds...\n" >> /var/logs/webserver/pre-stop-hook.log
+        
+        sleep 5
+    done
+
+    printf "Max retries reached. Exiting pre-stop hook with error.\n" >> /var/logs/webserver/pre-stop-hook.log
+    exit 1
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stack-io-scripts-configmap
+  namespace: stack-io
+data:
+  init-setup.sh: |-
+    #!/bin/sh
+
+    set -eo pipefail
+
+    printf "$(date) | [INFO] Running init-setup.sh script from setup Init Container.\n"
+
+    # Copy hooks files to another volume to be able to make them executable
+    printf "$(date) | [INFO] Copying lifecycle hook scripts to /dst/ and making them executable.\n"
+    cp /src/* /dst/
+    chmod +x /dst/*
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stack-io-db-secret
+  namespace: stack-io
+type: Opaque
+data:
+  server.confi: c3RhY2staW86c3RhY2staW9AdGNwKG15c3FsLm15c3FsOjMzMDYpL2Jsb2c=
