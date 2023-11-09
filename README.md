@@ -1,6 +1,6 @@
 # Introduction
 
-This is a candidate assessment assignment from [Stack.io](https://www.stack.io). A consulting firm focused in DevOps.
+This is a candidate assessment assignment from [Stack.io](https://www.stack.io). A consulting firm focused in DevOps. Read the [Guideline](#guideline) section containing the tasks to be completed.
 
 You can find documentation for the implementation of each task at [docs](https://github.com/guirgouveia/stack.io-assignment/tree/main/docs):
 
