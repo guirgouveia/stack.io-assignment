@@ -120,6 +120,6 @@ The application should be accessible at:
 
 - `http://$(minikube ip):30080`, where 30080 is the port exposed by the NodePort service. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.
 
-- `http://localhost:89`, where 80 is the port exposed by the Load Balancer service and also at `http://stack-io.local`, using the Ingress. This approach is recommended for production deployments.
+- `http://localhost:89`, where 89 is the port exposed by the Load Balancer service and also at `http://stack-io.local`, using the Ingress. This approach is recommended for production deployments.
 
 - `http://localhost:8083`by Skaffold. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.
