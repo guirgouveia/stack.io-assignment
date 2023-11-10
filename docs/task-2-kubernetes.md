@@ -97,7 +97,7 @@ Three types of services were created for the app:
 In addition, a Ingress resource was created to expose the app with [NGINX Ingress Controller](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwiQn8W3v7WCAxXPqJUCHU7RBOMQFnoECAUQAQ&url=https%3A%2F%2Fdocs.nginx.com%2Fnginx-ingress-controller%2F&usg=AOvVaw2lebwrv0Wvgj3YPSasaSWF&opi=89978449).
 
 
-To use the ingress, add the minikube ingress addon with:
+To use the ingress and the load balancer, add the minikube ingress addon with:
 
 ```
     minikube addons enable ingress
