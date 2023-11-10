@@ -15,7 +15,7 @@ build:
       prefix: local
   artifacts:
     - image: stack-io
-      context: ../dockerize
+      context: ./dockerize
       docker:
         dockerfile: Dockerfile
 deploy:
@@ -23,9 +23,9 @@ deploy:
   kubectl: {}
 manifests:
   rawYaml:
-    - namespace.yaml
-    - app.yaml
-    - mysql.yaml
+    - kubernetes/namespace.yaml
+    - kubernetes/app.yaml
+    - kubernetes/mysql.yaml
 portForward:
   - resourceType: deployment
     resourceName: stack-io
