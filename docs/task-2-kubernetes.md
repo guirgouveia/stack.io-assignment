@@ -94,8 +94,6 @@ Three types of services were created for the app:
 - NodePort: to expose the app to a port on the node running minikube ( localhost ).
 - LoadBalancer: to expose the app to the outside world.
 
-The application should be accessible at `http://localhost:8080`, where 8080 is the port exposed by the NodePort service. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.
-
 In addition, a Ingress resource was created to expose the app with [NGINX Ingress Controller](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwiQn8W3v7WCAxXPqJUCHU7RBOMQFnoECAUQAQ&url=https%3A%2F%2Fdocs.nginx.com%2Fnginx-ingress-controller%2F&usg=AOvVaw2lebwrv0Wvgj3YPSasaSWF&opi=89978449).
 
 To use the ingress, add the minikube ingress addon with:
@@ -111,11 +109,16 @@ Enable the ingress tunnel with:
 ```
 
 And finally, add the following line to your `/etc/hosts` file:
+```
     127.0.0.1       stack-io.local
 ```
 
 Remember to close the tunnel, when you're done, with `Ctrl+C`.
 
-The application should be accessible at `http://localhost:89`, where 80 is the port exposed by the Load Balancer service and also at `http://stack-io.local`, using the Ingress. This approach is recommended for production deployments.
+The application should be accessible at:
 
-Lastly, Skaffold already automatically creates a port-forwards at `http://localhost:8083`. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.
+- `http://localhost:8080`, where 8080 is the port exposed by the NodePort service. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.
+
+- `http://localhost:89`, where 80 is the port exposed by the Load Balancer service and also at `http://stack-io.local`, using the Ingress. This approach is recommended for production deployments.
+
+- `http://localhost:8083`by Skaffold. This approach is only recommended for local deployments, as it exposes the cluster port directly to the outside world.
